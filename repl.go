@@ -1,8 +1,12 @@
 package main
-import "strings"
-import "bufio"
-import "fmt"
-import "os"
+
+import ( 
+	"strings"
+	"bufio"
+	"fmt"
+	"os"
+	"github.com/codybarton97/pokedex/internal/pokeapi"
+)
 
 //Formats input
 func cleanInput(text string) []string {
@@ -12,24 +16,62 @@ func cleanInput(text string) []string {
 }
 
 func startRepl(cfg *Config) {
-
+	//Register commands to execute
 	registry = map[string]cliCommand{
 		"exit": {
-		name:	"exit",
+		name:		 "exit",
 		description: "Exit the Pokedex",
-		callback: 	commandExit,
+		callback: 	 commandExit,
 		},
 
 		"help": {
-		name:	"help",
+		name:		 "help",
 		description: "Displays a help message",
-		callback:	commandHelp,
+		callback:	 commandHelp,
 		},
+
+		"map": {
+			name:		 "map",
+			description: "Get the next page of locations", 
+			callback:	commandMapf,
+		},
+
+		"mapb": {
+			name: 		 "mapb",
+			description: "Get the previous page of locations",
+			callback: 	 commandMapb,
+		},
+
+		"explore": {
+			name: 		 "explore",
+			description: "Explore a specific area location",
+			callback: 	 commandExplore,
+		},
+
+		"catch": {
+			name:        "catch",
+			description: "Attempt to catch a pokemon",
+			callback:    commandCatch,
+		},
+
+		"inspect": {
+			name: 		 "inspect",
+			description: "Inspect a pokemon's stats",
+			callback: 	 commandInspect,
+		},
+
+		"pokedex": {
+			name: "pokedex",
+			description: "List all pokemon you've caught",
+			callback: commandPokedex,
+		},
+
 	}
 
 	//Take user input
 	scanner := bufio.NewScanner(os.Stdin)
 
+	//Begin forever loop
 	for {
 		fmt.Print("Pokedex > ")
 		if !scanner.Scan() {
@@ -47,7 +89,7 @@ func startRepl(cfg *Config) {
 			fmt.Println("Unknown command")
 			continue
 		}else{
-			errs := command.callback(cfg)
+			errs := command.callback(cfg, cleaned[1:]...)
 			if errs != nil{
 				fmt.Println(errs)
 			}
@@ -58,12 +100,16 @@ func startRepl(cfg *Config) {
 type cliCommand struct {
 	name		string
 	description	string
-	callback	func(*Config) error
+	callback	func(*Config, ...string) error
 }
 
 var registry map[string]cliCommand
 
 type Config struct {
-	state 	string
-	registry 	map[string]cliCommand
+	state 			 string
+	registry 		 map[string]cliCommand
+	pokeapiClient	 pokeapi.Client
+	nextLocationsURL *string
+	prevLocationsURL *string
+	caughtPokemon    map[string]pokeapi.Pokemon
 }

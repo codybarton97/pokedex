@@ -1,9 +1,9 @@
 package main
 import "fmt"
 
-func commandHelp(cfg *Config) error {
+func commandHelp(cfg *Config, args ...string) error {
 	fmt.Println("Welcome to the Pokedex!")
-	fmt.Println("Usage:\n")
+	fmt.Println("Usage:")
 	for _, command := range registry {
 		fmt.Println(command.name + ": " + command.description)
 	}
